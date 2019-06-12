@@ -23,6 +23,9 @@
 // 的时间复杂度是 O(log n)，n 是被哈希到同一个 semaRoot 的不同地址的总数，每一个地址上都会有一些 goroutine 被阻塞。
 // 访问 golang.org/issue/17953 来查看一个在引入二级列表之前性能较差的程序样例，test/locklinear.go
 // 中有一个复现这个样例的测试
+`sudog` 每一个goroutine被阻塞都会属于一个`sudog`对象．如果一个goroutine被阻塞多次，可能属于多个`sudog`  
+
+```
 type semaRoot struct {
     lock  mutex
     treap *sudog // root of balanced tree of unique waiters.
@@ -34,9 +37,10 @@ const semTabSize = 251
 
 var semtable [semTabSize]struct {
     root semaRoot
+// 为了跟cacheline对齐，高并发,尽量减少伪共享
     pad  [sys.CacheLineSize - unsafe.Sizeof(semaRoot{})]byte
 }
-
+```
 func semroot(addr *uint32) *semaRoot {
     return &semtable[(uintptr(unsafe.Pointer(addr))>>3)%semTabSize].root
 }
