@@ -148,6 +148,7 @@ treap 结构:
 对外封装
 在 sema.go 里实现的内容，用 go:linkname 导出给 sync、poll 库来使用，也是在链接期做了些手脚:
 
+```
 //go:linkname sync_runtime_Semacquire sync.runtime_Semacquire
 func sync_runtime_Semacquire(addr *uint32) {
     semacquire1(addr, false, semaBlockProfile)
@@ -172,10 +173,13 @@ func sync_runtime_SemacquireMutex(addr *uint32, lifo bool) {
 func poll_runtime_Semrelease(addr *uint32) {
     semrelease(addr)
 }
-实现
+```
+
+#### 实现
 sem 本身支持 acquire 和 release，其实就是 OS 里常说的 P 操作和 V 操作。
 
 公共部分
+```
 func cansemacquire(addr *uint32) bool {
     for {
         v := atomic.Load(addr)
@@ -187,7 +191,9 @@ func cansemacquire(addr *uint32) bool {
         }
     }
 }
+```
 acquire 过程
+```
 type semaProfileFlags int
 
 const (
@@ -248,7 +254,11 @@ func semacquire1(addr *uint32, lifo bool, profile semaProfileFlags) {
     }
     releaseSudog(s)
 }
+```
+
 release 过程
+
+```
 func semrelease(addr *uint32) {
     semrelease1(addr, false)
 }
@@ -298,6 +308,8 @@ func readyWithTime(s *sudog, traceskip int) {
     }
     goready(s.g, traceskip)
 }
+```
+
 treap 结构
 sudog 按照地址 hash 到 251 个 bucket 中的其中一个，每一个 bucket 都是一棵 treap。而相同 addr 上的 sudog 会形成一个链表。
 
@@ -305,6 +317,8 @@ sudog 按照地址 hash 到 251 个 bucket 中的其中一个，每一个 bucket
 
 // queue 函数会把 s 添加到 semaRoot 上阻塞的 goroutine 们中
 // 实际上就是把 s 添加到其地址对应的 treap 上
+
+```
 func (root *semaRoot) queue(addr *uint32, s *sudog, lifo bool) {
     s.g = getg()
     s.elem = unsafe.Pointer(addr)
@@ -386,9 +400,11 @@ func (root *semaRoot) queue(addr *uint32, s *sudog, lifo bool) {
         }
     }
 }
+```
 
 // dequeue 会搜索到阻塞在 addr 地址的 semaRoot 中的第一个 goroutine
 // 如果这个 sudog 需要进行 profile，dequeue 会返回它被唤醒的时间(now)，否则的话 now 为 0
+```
 func (root *semaRoot) dequeue(addr *uint32) (found *sudog, now int64) {
     ps := &root.treap
     s := *ps
@@ -530,6 +546,7 @@ func (root *semaRoot) rotateRight(y *sudog) {
         p.next = x
     }
 }
+```
 notifyList 结构
 notifyList 结构提供给 sync.Cond 使用，用来做条件变量进行通知和唤醒，比较简单。
 
