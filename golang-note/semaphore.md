@@ -551,6 +551,7 @@ notifyList 结构
 notifyList 结构提供给 sync.Cond 使用，用来做条件变量进行通知和唤醒，比较简单。
 
 // notifyList 基于 ticket 进行通知，以实现 sync.Cond 的功能
+```
 type notifyList struct {
     // wait 是下一个 waiter 应该持有的 ticket 号。该字段会在 notifyList.lock
     // 之外被原子地递增。
@@ -570,16 +571,22 @@ type notifyList struct {
     head *sudog
     tail *sudog
 }
+```
 
 // less checks if a < b, considering a & b running counts that may overflow the
 // 32-bit range, and that their "unwrapped" difference is always less than 2^31.
+
+```
 func less(a, b uint32) bool {
     return int32(a-b) < 0
 }
+```
 
 // 这个破玩艺儿其实就只是原子 add l.wait
 // 并且要求用户必须把传回去的值，作为 ticket，再传给 notifyListWait，作为 t 参数
 // 这样才能把 caller 挂在 l 列表上等待 notification。
+
+```
 //go:linkname notifyListAdd sync.runtime_notifyListAdd
 func notifyListAdd(l *notifyList) uint32 {
     // This may be called concurrently, for example, when called from
@@ -712,3 +719,4 @@ func notifyListCheck(sz uintptr) {
 func sync_nanotime() int64 {
     return nanotime()
 }
+```
