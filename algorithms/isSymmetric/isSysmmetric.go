@@ -10,7 +10,7 @@ type TreeNode struct {
 
 func main() {
 	root := &TreeNode{}
-	s := []int{1, 2, 2, 3, 3, 3, 3}
+	s := []int{1, 2, 2, 2, 4, 4, 3}
 	root.value = s[0]
 	initBinaryTree(root, 1, s)
 	if isSymmetric(root) {
