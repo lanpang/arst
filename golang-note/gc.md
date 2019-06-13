@@ -235,3 +235,11 @@ forcegchelper --> gcStart
 
 其实就是`mallocgc,forcegchelper,runtime.GC` 这三个入口.  
 * mallogc,分配堆内存时触发，
+* forcegchelper,在forcegchelper中，会把forcegc.g这个全局对象的运行g挂起.  
+sysmon会调用test检查上次触发gc的时间到当前时间是否已经经过了forcegcperiod长的时间,  
+如果已经超过，那么就会将`forcegc.g`注入到globrunq.这样会在该g被调度到的时候触发gc.
+* `runtime.GC`是由用户主动触发的,相当于强制触发gc.  
+
+### gcTrigger和gc条件检查
+
+
