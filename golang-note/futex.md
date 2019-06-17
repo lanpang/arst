@@ -2,6 +2,7 @@
 
 主要是linux的futex机制
 
+golang 在调用pause指令时，具体在做什么
 
 主要数据结构
 ```
